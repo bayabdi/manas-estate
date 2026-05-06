@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Админка каталога | Manas Estate</title>
+    <style>
+      :root{color-scheme:dark;--bg:#050505;--panel:#101013;--line:rgba(255,255,255,.16);--muted:rgba(255,255,255,.68);--green:#12b981;--gold:#cda15a;--red:#ef4444;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#fff}.wrap{width:min(1180px,calc(100% - 28px));margin:0 auto;padding:28px 0 80px}.top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:22px}.brand{font-weight:950;text-transform:uppercase;letter-spacing:.05em}.muted{color:var(--muted);line-height:1.55}.grid{display:grid;grid-template-columns:360px 1fr;gap:18px}.panel{border:1px solid var(--line);background:var(--panel);padding:18px}.panel h2{margin:0 0 14px;text-transform:uppercase;font-size:22px}.form{display:grid;gap:12px}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}label{display:grid;gap:6px;font-size:13px;font-weight:800;color:rgba(255,255,255,.84)}input,select,textarea{width:100%;border:1px solid var(--line);background:#050506;color:#fff;min-height:42px;padding:10px;font:inherit}textarea{min-height:82px;resize:vertical}.button{min-height:44px;border:2px solid #fff;background:transparent;color:#fff;font-weight:950;text-transform:uppercase;cursor:pointer}.button.green{border-color:var(--green);background:var(--green);color:#03130d}.button.gold{border-color:var(--gold);color:#fff}.button.red{border-color:var(--red);color:#fff}.actions{display:flex;flex-wrap:wrap;gap:8px}.status{white-space:pre-wrap;border:1px solid var(--line);padding:12px;color:var(--muted);min-height:48px}.list{display:grid;gap:10px}.item{display:grid;grid-template-columns:86px 1fr auto;gap:12px;align-items:center;border:1px solid var(--line);padding:10px;background:#070708}.item img{width:86px;height:64px;object-fit:cover;background:#111}.item strong{display:block}.item small{color:var(--muted)}.preview{max-width:100%;max-height:180px;border:1px solid var(--line);display:none}.danger{border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.08);padding:12px}.help{font-size:12px;color:var(--muted)}@media(max-width:860px){.grid{grid-template-columns:1fr}.top{display:block}.row{grid-template-columns:1fr}.item{grid-template-columns:72px 1fr}.item .actions{grid-column:1/-1}.item img{width:72px;height:56px}}
+    </style>
+  </head>
+  <body>
+    <main class="wrap" data-admin-app>
+      <div class="top">
+        <div>
+          <div class="brand">Manas Estate Admin</div>
+          <p class="muted">Админка для не-программистов: заполните форму, загрузите фото, нажмите “Сохранить на сайт”. Токен нужен только для отправки изменений в GitHub и не записывается в браузер.</p>
+        </div>
+        <a class="button gold" href="./" target="_blank" rel="noopener">Открыть сайт</a>
+      </div>
+
+      <section class="panel danger">
+        <strong>Безопасность:</strong> используйте отдельный fine-grained PAT только для repo <code>bayabdi/manas-estate</code> с правами <code>Contents: Read and write</code>. После работы можно удалить токен.
+      </section>
+
+      <div class="grid">
+        <section class="panel">
+          <h2>Доступ GitHub</h2>
+          <div class="form">
+            <div class="row">
+              <label>Owner <input id="owner" value="bayabdi" /></label>
+              <label>Repo <input id="repo" value="manas-estate" /></label>
+            </div>
+            <label>Branch <input id="branch" value="main" /></label>
+            <label>GitHub PAT <input id="token" type="password" placeholder="github_pat_..." autocomplete="off" /></label>
+            <div class="actions">
+              <button class="button" id="testAccess" type="button">Проверить</button>
+              <button class="button green" id="loadCatalog" type="button">Загрузить каталог</button>
+            </div>
+            <div class="status" id="status">Готово. Введите PAT и загрузите каталог.</div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Объект</h2>
+          <form class="form" id="listingForm">
+            <input id="listingId" type="hidden" />
+            <div class="row">
+              <label>Сделка
+                <select id="deal">
+                  <option value="sale">Продажа / Сатуу</option>
+                  <option value="rent">Аренда / Ижара</option>
+                </select>
+              </label>
+              <label>Тип
+                <select id="category">
+                  <option value="apartment">Квартира / Батир</option>
+                  <option value="house">Дом / Үй</option>
+                  <option value="land">Участок / Жер тилкеси</option>
+                  <option value="commercial">Коммерция</option>
+                </select>
+              </label>
+            </div>
+            <div class="row">
+              <label>Цена <input id="price" placeholder="$42 000" required /></label>
+              <label>Instagram ссылка <input id="instagramUrl" placeholder="https://www.instagram.com/p/..." /></label>
+            </div>
+            <div class="row">
+              <label>Название KG <input id="titleKy" required /></label>
+              <label>Название RU <input id="titleRu" required /></label>
+            </div>
+            <div class="row">
+              <label>Локация KG <input id="locationKy" placeholder="📍 Борбор, Манас" required /></label>
+              <label>Локация RU <input id="locationRu" placeholder="📍 Центр, Манас" required /></label>
+            </div>
+            <div class="row">
+              <label>Мета KG <input id="metaKy" placeholder="58 м², 2 бөлмө, 4-кабат" /></label>
+              <label>Мета RU <input id="metaRu" placeholder="58 м², 2 комнаты, 4 этаж" /></label>
+            </div>
+            <div class="row">
+              <label>Описание KG <textarea id="descriptionKy" required></textarea></label>
+              <label>Описание RU <textarea id="descriptionRu" required></textarea></label>
+            </div>
+            <div class="row">
+              <label>WhatsApp KG <input id="whatsappKy" placeholder="Саламатсызбы! Толугураак билгим келет..." /></label>
+              <label>WhatsApp RU <input id="whatsappRu" placeholder="Здравствуйте! Хочу узнать детали..." /></label>
+            </div>
+            <label>Фото объекта <input id="imageFile" type="file" accept="image/*" /></label>
+            <img class="preview" id="preview" alt="preview" />
+            <p class="help">Фото будет уменьшено до 1600px и сохранено в <code>assets/listings/</code>. Если фото не выбрать, останется старое фото объекта.</p>
+            <div class="actions">
+              <button class="button green" type="submit">Сохранить объект</button>
+              <button class="button" id="newListing" type="button">Новый</button>
+              <button class="button gold" id="saveSite" type="button">Сохранить на сайт</button>
+            </div>
+          </form>
+        </section>
+      </div>
+
+      <section class="panel" style="margin-top:18px">
+        <h2>Каталог</h2>
+        <div class="list" id="listings"></div>
+      </section>
+    </main>
+
+    <script>
+      const API_VERSION = "2022-11-28";
+      const MAX_IMAGE_WIDTH = 1600;
+      const JPEG_QUALITY = 0.82;
+      let catalog = { version: 1, updatedAt: new Date().toISOString(), listings: [] };
+      let imageUpload = null;
+
+      const $ = (id) => document.getElementById(id);
+      const status = (message) => { $("status").textContent = message; };
+      const config = () => ({ owner: $("owner").value.trim(), repo: $("repo").value.trim(), branch: $("branch").value.trim(), token: $("token").value.trim() });
+      const headers = () => ({ "Authorization": `Bearer ${config().token}`, "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": API_VERSION });
+      const splitMeta = (value) => value.split(",").map((item) => item.trim()).filter(Boolean);
+      const slugify = (value) => String(value || "object").toLowerCase().replace(/[^a-z0-9а-яёүңө\s-]/gi, "").trim().replace(/\s+/g, "-").slice(0, 48) || `object-${Date.now()}`;
+      const categoryLabel = {
+        apartment: { ky: "Батир", ru: "Квартира" },
+        house: { ky: "Үй", ru: "Дом" },
+        land: { ky: "Жер тилкеси", ru: "Участок" },
+        commercial: { ky: "Коммерция", ru: "Коммерция" }
+      };
+      const dealLabel = { sale: { ky: "Сатуу", ru: "Продажа" }, rent: { ky: "Ижара", ru: "Аренда" } };
+
+      async function github(path, options = {}) {
+        const { owner, repo } = config();
+        if (!config().token) throw new Error("Введите GitHub PAT");
+        const response = await fetch(`https://api.github.com/repos/${owner}/${repo}${path}`, { ...options, headers: { ...headers(), ...(options.headers || {}) } });
+        const text = await response.text();
+        const data = text ? JSON.parse(text) : null;
+        if (!response.ok) throw new Error(data && data.message ? data.message : `GitHub API ${response.status}`);
+        return data;
+      }
+
+      function encodeUtf8Base64(text) {
+        const bytes = new TextEncoder().encode(text);
+        let binary = "";
+        bytes.forEach((byte) => binary += String.fromCharCode(byte));
+        return btoa(binary);
+      }
+
+      function decodeUtf8Base64(content) {
+        const binary = atob(String(content || "").replace(/\n/g, ""));
+        const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+        return new TextDecoder().decode(bytes);
+      }
+
+      async function getContent(path) {
+        const { branch } = config();
+        return github(`/contents/${encodeURIComponent(path).replace(/%2F/g, "/")}?ref=${encodeURIComponent(branch)}`);
+      }
+
+      async function putContent(path, contentBase64, message) {
+        const { branch } = config();
+        let sha;
+        try { sha = (await getContent(path)).sha; } catch (error) { sha = undefined; }
+        return github(`/contents/${encodeURIComponent(path).replace(/%2F/g, "/")}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message, content: contentBase64, branch, sha })
+        });
+      }
+
+      async function loadCatalog() {
+        status("Загружаю catalog.json...");
+        const file = await getContent("catalog.json");
+        catalog = JSON.parse(decodeUtf8Base64(file.content));
+        renderList();
+        status(`Каталог загружен: ${catalog.listings.length} объектов.`);
+      }
+
+      function listingFromForm(existing = {}) {
+        const id = $("listingId").value || slugify($("titleRu").value || $("titleKy").value) + "-" + Date.now();
+        const deal = $("deal").value;
+        const category = $("category").value;
+        return {
+          ...existing,
+          id,
+          active: true,
+          deal,
+          category,
+          filters: [deal, category],
+          badges: { ky: [dealLabel[deal].ky, categoryLabel[category].ky], ru: [dealLabel[deal].ru, categoryLabel[category].ru] },
+          price: $("price").value.trim(),
+          image: existing.image || "",
+          instagramUrl: $("instagramUrl").value.trim(),
+          whatsapp: { ky: $("whatsappKy").value.trim() || `Саламатсызбы! Толугураак билгим келет: ${$("titleKy").value.trim()}.`, ru: $("whatsappRu").value.trim() || `Здравствуйте! Хочу узнать детали: ${$("titleRu").value.trim()}.` },
+          ky: { title: $("titleKy").value.trim(), location: $("locationKy").value.trim(), meta: splitMeta($("metaKy").value), description: $("descriptionKy").value.trim(), alt: `${$("titleKy").value.trim()} сүрөтү` },
+          ru: { title: $("titleRu").value.trim(), location: $("locationRu").value.trim(), meta: splitMeta($("metaRu").value), description: $("descriptionRu").value.trim(), alt: `Фото: ${$("titleRu").value.trim()}` }
+        };
+      }
+
+      function fillForm(listing) {
+        $("listingId").value = listing.id || "";
+        $("deal").value = listing.deal || "sale";
+        $("category").value = listing.category || "apartment";
+        $("price").value = listing.price || "";
+        $("instagramUrl").value = listing.instagramUrl || "";
+        $("titleKy").value = listing.ky?.title || "";
+        $("titleRu").value = listing.ru?.title || "";
+        $("locationKy").value = listing.ky?.location || "";
+        $("locationRu").value = listing.ru?.location || "";
+        $("metaKy").value = (listing.ky?.meta || []).join(", ");
+        $("metaRu").value = (listing.ru?.meta || []).join(", ");
+        $("descriptionKy").value = listing.ky?.description || "";
+        $("descriptionRu").value = listing.ru?.description || "";
+        $("whatsappKy").value = listing.whatsapp?.ky || "";
+        $("whatsappRu").value = listing.whatsapp?.ru || "";
+        $("preview").src = listing.image || "";
+        $("preview").style.display = listing.image ? "block" : "none";
+        imageUpload = null;
+      }
+
+      function clearForm() {
+        $("listingForm").reset();
+        $("listingId").value = "";
+        $("preview").removeAttribute("src");
+        $("preview").style.display = "none";
+        imageUpload = null;
+      }
+
+      function renderList() {
+        $("listings").innerHTML = catalog.listings.map((listing) => `
+          <div class="item">
+            <img src="${listing.image}" alt="" />
+            <div><strong>${listing.ky?.title || listing.ru?.title || listing.id}</strong><small>${listing.price || ""} · ${listing.ky?.location || ""}<br>${listing.instagramUrl || "Instagram ссылка не добавлена"}</small></div>
+            <div class="actions"><button class="button" type="button" data-edit="${listing.id}">Редактировать</button><button class="button red" type="button" data-delete="${listing.id}">Удалить</button></div>
+          </div>`).join("");
+      }
+
+      async function resizeImage(file) {
+        const bitmap = await createImageBitmap(file);
+        const scale = Math.min(1, MAX_IMAGE_WIDTH / bitmap.width);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(bitmap.width * scale);
+        canvas.height = Math.round(bitmap.height * scale);
+        canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", JPEG_QUALITY));
+        return { blob, previewUrl: URL.createObjectURL(blob) };
+      }
+
+      async function blobToBase64(blob) {
+        const buffer = await blob.arrayBuffer();
+        let binary = "";
+        new Uint8Array(buffer).forEach((byte) => binary += String.fromCharCode(byte));
+        return btoa(binary);
+      }
+
+      $("imageFile").addEventListener("change", async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        imageUpload = await resizeImage(file);
+        $("preview").src = imageUpload.previewUrl;
+        $("preview").style.display = "block";
+        status(`Фото подготовлено: ${Math.round(imageUpload.blob.size / 1024)} KB.`);
+      });
+
+      $("listingForm").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const index = catalog.listings.findIndex((item) => item.id === $("listingId").value);
+        const listing = listingFromForm(index >= 0 ? catalog.listings[index] : {});
+        if (index >= 0) catalog.listings[index] = listing; else catalog.listings.unshift(listing);
+        fillForm(listing);
+        renderList();
+        status("Объект сохранён локально. Нажмите “Сохранить на сайт”, чтобы отправить изменения в GitHub.");
+      });
+
+      $("listings").addEventListener("click", (event) => {
+        const editId = event.target.dataset.edit;
+        const deleteId = event.target.dataset.delete;
+        if (editId) fillForm(catalog.listings.find((item) => item.id === editId));
+        if (deleteId && confirm("Удалить объект из каталога?")) {
+          catalog.listings = catalog.listings.filter((item) => item.id !== deleteId);
+          renderList();
+          clearForm();
+          status("Объект удалён локально. Нажмите “Сохранить на сайт”.");
+        }
+      });
+
+      $("newListing").addEventListener("click", clearForm);
+      $("testAccess").addEventListener("click", async () => {
+        try {
+          const repo = await github("");
+          status(`Доступ есть: ${repo.full_name}. Push: ${repo.permissions?.push ? "да" : "нет"}.`);
+        } catch (error) { status(`Ошибка доступа: ${error.message}`); }
+      });
+      $("loadCatalog").addEventListener("click", () => loadCatalog().catch((error) => status(`Ошибка загрузки: ${error.message}`)));
+      $("saveSite").addEventListener("click", async () => {
+        try {
+          const editId = $("listingId").value;
+          if (editId && imageUpload) {
+            const listing = catalog.listings.find((item) => item.id === editId);
+            const imagePath = `assets/listings/${listing.id}-${Date.now()}.jpg`;
+            await putContent(imagePath, await blobToBase64(imageUpload.blob), `Upload listing photo: ${listing.id}`);
+            listing.image = imagePath;
+          }
+          catalog.updatedAt = new Date().toISOString();
+          await putContent("catalog.json", encodeUtf8Base64(JSON.stringify(catalog, null, 2)), "Update real estate catalog");
+          renderList();
+          status("Готово: каталог сохранён в GitHub. GitHub Pages обновится через 1-2 минуты.");
+        } catch (error) { status(`Ошибка сохранения: ${error.message}`); }
+      });
+
+      renderList();
+    </script>
+  </body>
+</html>

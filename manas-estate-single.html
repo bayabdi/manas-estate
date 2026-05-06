@@ -123,6 +123,7 @@ function setLanguage(lang) {
   const metaDescription = document.querySelector('meta[name="description"]');
   if (metaDescription) metaDescription.setAttribute("content", dictionary.metaDescription);
   updateWhatsAppLinks(selected);
+  if (currentCatalog && currentCatalog.listings && currentCatalog.listings.length) renderCatalog(currentCatalog);
   localStorage.setItem("site-lang", selected);
 }
 function updateWhatsAppLinks(lang) {
@@ -132,11 +133,65 @@ function updateWhatsAppLinks(lang) {
     if (message) link.href = `https://wa.me/996888001002?text=${encodeURIComponent(message)}`;
   });
 }
+const fallbackCatalog = { listings: [] };
+let currentCatalog = null;
+let activeFilter = "all";
+function activeLanguage() {
+  return document.documentElement.lang === "ru" ? "ru" : "ky";
+}
+function textFor(listing, field) {
+  const lang = activeLanguage();
+  return (listing[lang] && listing[lang][field]) || (listing.ky && listing.ky[field]) || "";
+}
+function escapeHtml(value) {
+  return String(value || "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
+}
+function renderCatalog(catalog) {
+  const grid = document.querySelector(".catalog-grid");
+  if (!grid || !catalog || !Array.isArray(catalog.listings) || catalog.listings.length === 0) return;
+  const lang = activeLanguage();
+  grid.innerHTML = catalog.listings
+    .filter((listing) => listing.active !== false)
+    .map((listing) => {
+      const filters = (listing.filters || [listing.deal, listing.category]).filter(Boolean).join(" ");
+      const badges = ((listing.badges && (listing.badges[lang] || listing.badges.ky)) || []).map((badge, index) => `<span class="badge ${index === 0 && listing.deal === "rent" ? "rent" : index === 0 && badge.toLowerCase().includes("тез") ? "hot" : index === 0 ? "sale" : ""}">${escapeHtml(badge)}</span>`).join("");
+      const meta = (textFor(listing, "meta") || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+      const message = (listing.whatsapp && (listing.whatsapp[lang] || listing.whatsapp.ky)) || "";
+      const instagram = listing.instagramUrl ? `<a class="button" href="${escapeHtml(listing.instagramUrl)}" target="_blank" rel="noopener">Instagram</a>` : "";
+      const detailsLabel = lang === "ru" ? "Узнать детали" : "Толугураак билүү";
+      return `<article class="listing-card" data-listing-card data-filter="${filters}">
+        <div class="listing-photo"><img src="${escapeHtml(listing.image)}" alt="${escapeHtml(textFor(listing, "alt"))}" loading="lazy" /><div class="badge-row">${badges}</div></div>
+        <div class="listing-body"><h3>${escapeHtml(textFor(listing, "title"))}</h3><p class="listing-location">${escapeHtml(textFor(listing, "location"))}</p><div class="listing-price">${escapeHtml(listing.price || "")}</div><ul class="listing-meta">${meta}</ul><p class="listing-description">${escapeHtml(textFor(listing, "description"))}</p><div class="hero-actions"><a class="button green" href="https://wa.me/996888001002?text=${encodeURIComponent(message)}" data-wa-intent="catalog-${escapeHtml(listing.id)}" data-wa-ru="${escapeHtml((listing.whatsapp && listing.whatsapp.ru) || "")}" data-wa-ky="${escapeHtml((listing.whatsapp && listing.whatsapp.ky) || "")}" target="_blank" rel="noopener">${detailsLabel}</a>${instagram}</div></div>
+      </article>`;
+    })
+    .join("");
+  updateWhatsAppLinks(lang);
+  applyCatalogFilter(activeFilter);
+}
+function applyCatalogFilter(filter) {
+  activeFilter = filter || "all";
+  document.querySelectorAll("[data-filter-button]").forEach((item) => item.classList.toggle("is-active", item.dataset.filterButton === activeFilter));
+  document.querySelectorAll("[data-listing-card]").forEach((card) => {
+    const tags = (card.dataset.filter || "").split(" ");
+    card.classList.toggle("is-hidden", activeFilter !== "all" && !tags.includes(activeFilter));
+  });
+}
+async function loadCatalog() {
+  try {
+    const response = await fetch("catalog.json", { cache: "no-store" });
+    if (!response.ok) throw new Error(`catalog ${response.status}`);
+    currentCatalog = await response.json();
+    renderCatalog(currentCatalog);
+  } catch (error) {
+    currentCatalog = fallbackCatalog;
+    applyCatalogFilter(activeFilter);
+  }
+}
 document.querySelectorAll("[data-lang-switch]").forEach((button) => {
   button.addEventListener("click", () => setLanguage(button.dataset.langSwitch));
 });
 setLanguage(localStorage.getItem("site-lang") || "ky");
-</script><script>document.getElementById("year").textContent=new Date().getFullYear();const filterButtons=document.querySelectorAll("[data-filter-button]");const listingCards=document.querySelectorAll("[data-listing-card]");filterButtons.forEach((button)=>{button.addEventListener("click",()=>{const filter=button.dataset.filterButton;filterButtons.forEach((item)=>item.classList.toggle("is-active",item===button));listingCards.forEach((card)=>{const tags=(card.dataset.filter||"").split(" ");card.classList.toggle("is-hidden",filter!=="all"&&!tags.includes(filter));});});});</script>
+</script><script>document.getElementById("year").textContent=new Date().getFullYear();document.querySelectorAll("[data-filter-button]").forEach((button)=>{button.addEventListener("click",()=>applyCatalogFilter(button.dataset.filterButton));});loadCatalog();</script>
   </body>
 </html>
 

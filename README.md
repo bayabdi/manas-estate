@@ -1,56 +1,75 @@
-# Манас Недвижимость — MVP сайт для GitHub Pages
+# Manas Estate — сайт и админка для GitHub Pages
 
-Статический лендинг агентства недвижимости в Жалал-Абаде, собранный по публичным данным Instagram-профиля:
-<https://www.instagram.com/jalal_abad__nedvijimost/>
+Статический сайт агентства недвижимости для Манаса / Жалал-Абада:
+<https://bayabdi.github.io/manas-estate/>
+
+Основной язык сайта — кыргызский. Русский доступен через переключатель `RU / KG`.
 
 ## Что внутри
 
-- `index.html` — весь сайт в одном файле: HTML, CSS, небольшая JS-вставка года.
-- `assets/manas-entrance.jpg` — hero-фото для тёмного cinematic дизайна.
-- `assets/listing-*.jpg` — временные stock-фото для карточек миникаталога.
-- Миникаталог сейчас заполнен демо-объектами. Когда агентство пришлёт реальные данные,
-  карточки можно заменить; следующим этапом можно сделать админку для управления объектами.
-- Мультиязычность RU/KG работает на клиенте: кнопки `RU` / `KG` переключают ключевые тексты
-  и сохраняют выбор в `localStorage`.
+- `index.html` — основной сайт-визитка + миникаталог.
+- `catalog.json` — данные объектов, которые читает сайт.
+- `admin.html` — простая админка для изменения каталога без программирования.
+- `assets/listing-*.jpg` — стартовые фото объектов.
+- `assets/listings/` — папка для фото, загруженных через админку.
+- `manas-estate-single.html` — один самодостаточный HTML-файл для отправки/демо.
 - `.nojekyll` — отключает Jekyll на GitHub Pages.
 - `robots.txt` — базовые правила индексации.
 
-## Дизайн и изображения
+## Как пользоваться админкой
 
-Текущий визуальный стиль — SpaceX-inspired: тёмный full-screen hero, крупная типографика,
-минимум текста и сильные CTA. Это вдохновение по визуальному языку, без копирования кода или бренда SpaceX.
+Админка доступна по адресу:
+<https://bayabdi.github.io/manas-estate/admin.html>
 
-Hero-фото и фото карточек: Unsplash / Unsplash License. Hero: Isakov Eldiiar,
-Kyrgyzstan landscape. Фото карточек используются как временные stock-заглушки.
-После получения реальных фото Манаса, объектов или офиса агентства их лучше заменить.
+1. Введите GitHub PAT.
+2. Нажмите **Загрузить каталог**.
+3. Добавьте или отредактируйте объект.
+4. Загрузите фото объекта.
+5. Нажмите **Сохранить объект**.
+6. Нажмите **Сохранить на сайт**.
 
-## Публикация через GitHub Pages
+Админка сохраняет изменения в:
 
-1. Создайте репозиторий на GitHub, например `jalal-abad-nedvijimost`.
-2. Загрузите в него файлы из этой папки: `index.html`, `.nojekyll`, `robots.txt`, `README.md`.
-3. Откройте **Settings → Pages**.
-4. В **Build and deployment** выберите:
-   - Source: `Deploy from a branch`
-   - Branch: `main`
-   - Folder: `/ (root)`
-5. Сохраните настройки. Через 1–3 минуты сайт будет доступен по адресу:
-   `https://<github-user>.github.io/jalal-abad-nedvijimost/`
+- `catalog.json`
+- `assets/listings/*.jpg`
 
-## Публикация через git
+Токен в файлы проекта не записывается.
+
+## Права PAT для админки
+
+Лучше использовать отдельный fine-grained token только для репозитория:
+`bayabdi/manas-estate`
+
+Минимальные права:
+
+- `Contents: Read and write`
+- `Metadata: Read-only`
+
+После работы токен можно удалить/revoke в GitHub settings.
+
+## Фото и нагрузка
+
+Админка уменьшает фото в браузере до 1600px и сохраняет JPEG с качеством `0.82`.
+Это снижает вес страницы и расход GitHub Pages bandwidth.
+
+GitHub Pages имеет soft limit примерно 100 GB bandwidth/month, поэтому для MVP агентства
+этого достаточно. Если объектов и трафика станет много, фото лучше вынести в Cloudinary,
+ImageKit или Cloudflare R2.
+
+## Публикация
+
+GitHub Pages включён из ветки:
+
+- Branch: `main`
+- Folder: `/ (root)`
+
+Адрес сайта:
+<https://bayabdi.github.io/manas-estate/>
+
+## Проверка
 
 ```bash
-git init
-git add index.html .nojekyll robots.txt README.md
-git commit -m "Launch real estate MVP landing
-
-Constraint: GitHub Pages static hosting from repository root
-Confidence: high
-Scope-risk: narrow
-Tested: local static HTML validation
-Not-tested: production GitHub Pages deployment without remote credentials"
-git branch -M main
-git remote add origin https://github.com/<github-user>/jalal-abad-nedvijimost.git
-git push -u origin main
+python tests/validate_site.py
+python tests/validate_admin.py
+python tests/validate_single_html.py
 ```
-
-После push включите GitHub Pages в настройках репозитория.
