@@ -32,4 +32,4 @@ databases:
   - name: manas-estate-db
     databaseName: manas_estate
     user: manas_estate
-    plan: basic-1gb
+    plan: basic_1gb
