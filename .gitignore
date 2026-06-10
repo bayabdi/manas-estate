@@ -1,4 +1,11 @@
-﻿.omx/
+.omx/
 .DS_Store
 Thumbs.db
-
+.env
+.venv/
+__pycache__/
+*.pyc
+data/
+uploads/
+.pytest_cache/
+.coverage
