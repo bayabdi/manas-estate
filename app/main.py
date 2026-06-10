@@ -107,8 +107,8 @@ class SiteSettings(Base):
     hero_lead_ru: Mapped[str] = mapped_column(Text, default="Напишите бюджет, район и цель — уберём лишние варианты и предложим объекты, которые действительно стоит смотреть.", nullable=False)
     cta_text_ky: Mapped[str] = mapped_column(String(128), default="Варианттарды алуу", nullable=False)
     cta_text_ru: Mapped[str] = mapped_column(String(128), default="Получить варианты", nullable=False)
-    seo_title_ky: Mapped[str] = mapped_column(String(255), default="Манас / Жалал-Абад кыймылсыз мүлк | Manas Estate", nullable=False)
-    seo_title_ru: Mapped[str] = mapped_column(String(255), default="Недвижимость Манас / Жалал-Абад | Manas Estate", nullable=False)
+    seo_title_ky: Mapped[str] = mapped_column(String(255), default="Манас / Жалал-Абад кыймылсыз мүлк | apexjld", nullable=False)
+    seo_title_ru: Mapped[str] = mapped_column(String(255), default="Недвижимость Манас / Жалал-Абад | apexjld", nullable=False)
     seo_description_ky: Mapped[str] = mapped_column(Text, default="Манас жана Жалал-Абад боюнча кыймылсыз мүлк: батир, үй, жер тилкеси жана коммерция. Бюджетиңизге ылайык вариант таап, көрүүгө чейин коштоп беребиз.", nullable=False)
     seo_description_ru: Mapped[str] = mapped_column(Text, default="Недвижимость в Манасе и Жалал-Абаде: квартиры, дома, участки и коммерция. Подберём варианты под бюджет и поможем дойти до просмотра.", nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: now_utc(), nullable=False)
@@ -312,7 +312,7 @@ def create_app(test_config: dict[str, Any] | None = None) -> FastAPI:
         finally:
             db_session.remove()
 
-    app = FastAPI(title="Manas Estate Admin Backend", lifespan=lifespan)
+    app = FastAPI(title="apexjld Admin Backend", lifespan=lifespan)
     app.state.config = config
     app.state.engine = engine
     app.state.db_session = db_session
@@ -681,12 +681,43 @@ def normalize_whatsapp_phone(value: str) -> str:
     return digits or "996888001002"
 
 
+def normalize_brand_text(value: str) -> str:
+    return (value or "").replace("Manas Estate", "apexjld")
+
+
+def normalize_existing_site_settings(settings: SiteSettings) -> bool:
+    changed = False
+    for field_name in (
+        "hero_kicker_ky",
+        "hero_kicker_ru",
+        "hero_title_ky",
+        "hero_title_ru",
+        "hero_lead_ky",
+        "hero_lead_ru",
+        "cta_text_ky",
+        "cta_text_ru",
+        "seo_title_ky",
+        "seo_title_ru",
+        "seo_description_ky",
+        "seo_description_ru",
+    ):
+        current = getattr(settings, field_name)
+        normalized = normalize_brand_text(current)
+        if normalized != current:
+            setattr(settings, field_name, normalized)
+            changed = True
+    return changed
+
+
 def get_site_settings(app: FastAPI) -> SiteSettings:
     db = app.state.db_session
     settings = db.get(SiteSettings, 1)
     if settings is None:
         settings = SiteSettings(id=1)
         db.add(settings)
+        db.commit()
+    elif normalize_existing_site_settings(settings):
+        settings.updated_at = now_utc()
         db.commit()
     return settings
 
@@ -865,7 +896,7 @@ body{margin:0;background:#050505;color:#fff;font-family:Inter,system-ui,sans-ser
 """
 
 LOGIN_TEMPLATE = BASE_STYLE + """
-<main class="wrap"><section class="panel" style="max-width:480px"><h1>Manas Estate Admin</h1>
+<main class="wrap"><section class="panel" style="max-width:480px"><h1>apexjld Admin</h1>
 {% for message in get_flashed_messages() %}<div class="flash">{{ message }}</div>{% endfor %}
 <form method="post"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><label>Логин <input name="username" autocomplete="username" required></label><label>Пароль <input name="password" type="password" autocomplete="current-password" required></label><p><button class="green" type="submit">Войти</button></p></form>
 <p class="muted">Production пароль задаётся через ADMIN_PASSWORD_HASH в Render.</p></section></main>

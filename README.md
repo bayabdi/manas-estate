@@ -1,4 +1,4 @@
-# Manas Estate — Admin + Backend + Render каталог
+# apexjld — Admin + Backend + Render каталог
 
 Статический MVP мигрирует в небольшой FastAPI backend/admin для агентства недвижимости Манаса / Жалал-Абада.
 

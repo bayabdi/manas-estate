@@ -168,6 +168,20 @@ class BackendAppTest(unittest.TestCase):
         row = self.app.db_session.get(SiteSettings, 1)
         self.assertEqual(row.whatsapp_phone, "996777111222")
 
+    def test_existing_site_settings_old_brand_is_normalized(self):
+        row = SiteSettings(id=1)
+        row.seo_title_ky = "Манас / Жалал-Абад кыймылсыз мүлк | Manas Estate"
+        row.seo_title_ru = "Недвижимость Манас / Жалал-Абад | Manas Estate"
+        self.app.db_session.add(row)
+        self.app.db_session.commit()
+
+        payload = self.client.get("/api/site-settings").json()
+
+        self.assertNotIn("Manas Estate", payload["copy"]["ky"]["seoTitle"])
+        self.assertNotIn("Manas Estate", payload["copy"]["ru"]["seoTitle"])
+        self.assertIn("apexjld", payload["copy"]["ky"]["seoTitle"])
+        self.assertIn("apexjld", payload["copy"]["ru"]["seoTitle"])
+
     def test_admin_rejects_missing_csrf(self):
         login_response = self.client.post("/admin/login", data={"username": "admin", "password": "admin"})
         self.assertEqual(login_response.status_code, 400)

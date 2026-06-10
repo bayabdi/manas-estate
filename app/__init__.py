@@ -1,1 +1,1 @@
-"""Manas Estate backend package."""
+"""apexjld backend package."""
